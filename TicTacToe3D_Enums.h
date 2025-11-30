@@ -11,18 +11,6 @@ enum class GameState : uint8_t {
     EndState,
 };
 
-enum class ViewMode : uint8_t { 
-    Left, 
-    Middle, 
-    Right, 
-};
-
-enum class ViewControl : uint8_t { 
-    Left, 
-    Middle, 
-    Right, 
-};
-
 enum Players { 
     None = 0,
     Noughts = 1, 
