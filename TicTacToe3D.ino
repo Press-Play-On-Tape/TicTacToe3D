@@ -42,6 +42,7 @@ const Fixed COS_ISO = 0.866;    				// cos(30°)
 const Fixed SIN_ISO = 0.5;      				// sin(30°)
 Fixed gridSize = 26;
 Fixed layerSpacing = 21;
+uint8_t z = 0;
 
 
 /* -----------------------------------------------------------------------------------------------------------------------------
@@ -71,6 +72,10 @@ void loop() {
 	arduboy.pollButtons();
 
 	switch (gameState) {
+
+		case GameState::Splash:
+			showSplashScreen();
+			break;
 
 		case GameState::Title:
 			showTitle();
@@ -115,8 +120,8 @@ void showTitle() {
 		// playerOrComp = random(0, 2);	
 		playerOrComp = 0;
 		gameState = GameState::Game;
-		prevGameState = GameState::Game;
 		aCount = 20;
+		z = 255;
 
 	}
 
@@ -259,6 +264,7 @@ void playGame() {
 			if (checkForWin() != Players::None) {
 			
 				gameState = GameState::GameOver;
+				z = 0;
 
 			}
 
@@ -269,15 +275,74 @@ void playGame() {
 			switch (checkForWin()) {
 
 				case Players::Noughts:
-					Sprites::drawExternalMask(24, 18, Images::GameOver_YouWon, Images::GameOver_YouWon_Mask, 0, 0);
+
+					if (z < 255) {
+						
+						for (uint8_t i = 0; i < 15; i++) {
+
+							uint8_t c = pgm_read_byte(&GameOver::YouWon_Y[(z * 3 * 15) + (i * 3)]);
+							uint8_t x = pgm_read_byte(&GameOver::YouWon_Y[(z * 3 * 15) + (i * 3) + 1]);
+							int8_t y = pgm_read_byte(&GameOver::YouWon_Y[(z * 3 * 15) + (i * 3) + 2]);
+
+
+							const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
+							const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
+
+
+							Sprites::drawExternalMask(x, y, letterPtr, maskPtr, 0, 0);
+						}
+
+						if (arduboy.frameCount % 2 == 0 && z < 54) z++;
+
+					}				
+
 					break;
 
 				case Players::Crosses:
-					Sprites::drawExternalMask(24, 18, Images::GameOver_YouLost, Images::GameOver_YouLost_Mask, 0, 0);
+
+					if (z < 255) {
+						
+						for (uint8_t i = 0; i < 16; i++) {
+
+							uint8_t c = pgm_read_byte(&GameOver::YouLost_Y[(z * 3 * 16) + (i * 3)]);
+							uint8_t x = pgm_read_byte(&GameOver::YouLost_Y[(z * 3 * 16) + (i * 3) + 1]);
+							int8_t y = pgm_read_byte(&GameOver::YouLost_Y[(z * 3 * 16) + (i * 3) + 2]);
+
+							const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
+							const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
+
+							Sprites::drawExternalMask(x, y, letterPtr, maskPtr, 0, 0);
+
+						}
+
+						if (arduboy.frameCount % 2 == 0 && z < 54) z++;
+
+					}				
+
 					break;
 
 				case Players::Draw:
-					Sprites::drawExternalMask(24, 18, Images::GameOver_Draw, Images::GameOver_Draw_Mask, 0, 0);
+
+
+					if (z < 255) {
+						
+						for (uint8_t i = 0; i < 13; i++) {
+
+							uint8_t c = pgm_read_byte(&GameOver::Draw_Y[(z * 3 * 13) + (i * 3)]);
+							uint8_t x = pgm_read_byte(&GameOver::Draw_Y[(z * 3 * 13) + (i * 3) + 1]);
+							int8_t y = pgm_read_byte(&GameOver::Draw_Y[(z * 3 * 13) + (i * 3) + 2]);
+
+							const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
+							const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
+
+							Sprites::drawExternalMask(x, y, letterPtr, maskPtr, 0, 0);
+
+						}
+
+						if (arduboy.frameCount % 2 == 0 && z < 44) z++;
+
+					}				
+
 					break;
 
 			}
@@ -285,7 +350,6 @@ void playGame() {
 			if (arduboy.justPressed(A_BUTTON)) {
 
 				gameState = GameState::GameOver_View_1;
-				prevGameState = GameState::Title;
 				bCount = 0;
 
 			}
@@ -305,15 +369,6 @@ void showResults() {
 
 	uint8_t xOffset = 0;
 
-	switch (prevGameState) {
-
-		case GameState::Game:
-			Sprites::drawOverwrite(83, 44, Images::StackInstructions, 0);
-			xOffset = 10;
-			break;
-
-	}
-
 	switch (checkForWin()) {
 	
 		case Players::Noughts:
@@ -322,6 +377,10 @@ void showResults() {
 				
 		case Players::Crosses:
 			Sprites::drawOverwrite(96, 51, Images::GameOver_YouLost_Small, 0);
+			break;
+				
+		case Players::Draw:
+			Sprites::drawOverwrite(96, 51, Images::GameOver_Draw_Small, 0);
 			break;
 			
 	}
@@ -360,81 +419,45 @@ void showResults() {
 	
 	}
 
-	switch (prevGameState) {
 
-		case GameState::Title:
+	// Cycle graphics ..
 
-			bCount++;
+	bCount++;
 
-			if (bCount % 48 == 0) {
+	if (bCount % 48 == 0) {
 
-				bCount = 0;
-				gameState = static_cast<GameState>(static_cast<uint8_t>(gameState) + 1);
+		bCount = 0;
+		gameState = static_cast<GameState>(static_cast<uint8_t>(gameState) + 1);
 
-				if (gameState == GameState::EndState) { gameState = GameState::GameOver_View_1; }
+		if (gameState == GameState::EndState) { gameState = GameState::GameOver_View_1; }
 
-			}
+	}
 
-			if (arduboy.justPressed(A_BUTTON)) {
+	if (arduboy.justPressed(A_BUTTON)) {
 
-				gameState = GameState::Title;
-
-			}
-
-			break;
-
-		case GameState::Game:
-
-			if (arduboy.pressed(A_BUTTON) && arduboy.justPressed(UP_BUTTON)) {
-
-				switch (gameState) {
-				
-					case GameState::GameOver_View_1:	gameState = GameState::GameOver_View_2;		break;
-					case GameState::GameOver_View_2:	gameState = GameState::GameOver_View_3;		break;
-
-				}
-
-			}
-
-			if (arduboy.pressed(A_BUTTON) && arduboy.justPressed(DOWN_BUTTON)) {
-
-				switch (gameState) {
-				
-					case GameState::GameOver_View_2:	gameState = GameState::GameOver_View_1;		break;
-					case GameState::GameOver_View_3:	gameState = GameState::GameOver_View_2;		break;
-
-				}
-
-			}
-
-			if (arduboy.justReleased(A_BUTTON)) {
-
-				gameState = GameState::Game;
-			
-			}
-
-			break;
+		gameState = GameState::Title;
 
 	}
 
 }
 
-void splashScreen() {
+void showSplashScreen() {
 
 	Sprites::drawOverwrite(32, 17, Images::PPOT, 0);
 
 	uint8_t y = 17; // Default pixel position 1 is hidden in the top line of the image
-	switch (arduboy.getFrameCount(48)) {
 
-		case 12 ... 23:
+	switch (arduboy.frameCount % 32) {
+
+		case 8 ... 15:
 			y = 30; // Move pixel down to position 2
 			[[fallthrough]]
 
-		case 0 ... 11:
+		case 0 ... 7:
 			Sprites::drawOverwrite(91, 25, Images::PPOT_Arrow, 0); // Flash 'Play' arrow
 			break;
 
-		case 24 ... 35:
+		case 16 ... 24:
 			y = 31; // Move pixel down to position 3
 			break;
 
@@ -445,8 +468,45 @@ void splashScreen() {
 	}
 
 	arduboy.drawPixel(52, y, WHITE); // Falling pixel represents the tape spooling
+
 	if (y % 2 == 0) { // On even steps of pixel movement, update the spindle image
 		Sprites::drawOverwrite(45, 28, Images::PPOT_Spindle, 0);
 	}
 
+	if (arduboy.justPressed(A_BUTTON)) {
+		gameState = GameState::Title;
+	}
+
+	//Sprites::drawExternalMask(0, 0, Images::Letters[3], Images::Letters_Mask[3], 0,  0);
+
+
+// Sprites::drawExternalMask(24,18,Images::Letters[6], Images::Letters_Mask[6], 0, 0);		Sprites::drawExternalMask(33,18,Images::Letters[0], Images::Letters_Mask[0], 0, 0);		Sprites::drawExternalMask(42,18,Images::Letters[12], Images::Letters_Mask[12], 0, 0);		Sprites::drawExternalMask(54,18,Images::Letters[4], Images::Letters_Mask[4], 0, 0);		Sprites::drawExternalMask(67,18,Images::Letters[14], Images::Letters_Mask[14], 0, 0);		Sprites::drawExternalMask(76,18,Images::Letters[21], Images::Letters_Mask[21], 0, 0);		Sprites::drawExternalMask(85,18,Images::Letters[4], Images::Letters_Mask[4], 0, 0);		Sprites::drawExternalMask(94,18,Images::Letters[17], Images::Letters_Mask[17], 0, 0);
+
+
+// Sprites::drawExternalMask(28,32,Images::Letters[24], Images::Letters_Mask[24], 0, 0);		Sprites::drawExternalMask(38,32,Images::Letters[14], Images::Letters_Mask[14], 0, 0);		Sprites::drawExternalMask(47,32,Images::Letters[20], Images::Letters_Mask[20], 0, 0);		Sprites::drawExternalMask(60,32,Images::Letters[22], Images::Letters_Mask[22], 0, 0);		Sprites::drawExternalMask(72,32,Images::Letters[14], Images::Letters_Mask[14], 0, 0);		Sprites::drawExternalMask(81,32,Images::Letters[13], Images::Letters_Mask[13], 0, 0);
+
+// Sprites::drawExternalMask(95,32,Images::Letters[26], Images::Letters_Mask[26], 0, 0);
+
+
+
+	// if (z =< 99) {
+		
+	// for (uint8_t i = 0; i < 15; i++) {
+	// 	uint8_t c = pgm_read_byte(&YChars[(z * 21) + (i * 3)]);
+	// 	uint8_t x = pgm_read_byte(&YChars[(z * 21) + (i * 3) + 1]);
+	// 	int8_t y = pgm_read_byte(&YChars[(z * 21) + (i * 3) + 2]);
+
+
+
+
+    // const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
+    // const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
+
+
+	// 	Sprites::drawExternalMask(x, y, letterPtr, maskPtr, 0, 0);
+	// }
+
+	// if (z < 98) z++;
+
+	// }
 }
