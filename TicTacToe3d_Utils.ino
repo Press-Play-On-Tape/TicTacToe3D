@@ -1,77 +1,46 @@
-// #include <Arduboy2.h>
+#include <Arduboy2.h>
 
-// Rotate the board array 90 degrees around X-axis (tilting forward/backward)
-// direction: 1 for forward (top goes back, bottom comes forward)
-//           -1 for reverse (top comes forward, bottom goes back)
-// void rotateBoardX(uint8_t board[3][3][3], int8_t direction) {
-//     uint8_t temp[3][3][3];
-    
-//     // Copy board to temp
-//     for (int y = 0; y < 3; y++) {
-//         for (int x = 0; x < 3; x++) {
-//             for (int z = 0; z < 3; z++) {
-//                 temp[y][x][z] = board[y][x][z];
-//             }
-//         }
-//     }
-    
-//     if (direction > 0) {
-//         // Forward rotation: 90 degrees around X-axis
-//         // Rotating around X-axis: Y and Z coordinates transform
-//         // new_y = z, new_z = 2-y
-//         for (int y = 0; y < 3; y++) {
-//             for (int x = 0; x < 3; x++) {
-//                 for (int z = 0; z < 3; z++) {
-//                     board[z][x][2 - y] = temp[y][x][z];
-//                 }
-//             }
-//         }
-//     } else {
-//         // Reverse rotation: -90 degrees around X-axis
-//         // new_y = 2-z, new_z = y
-//         for (int y = 0; y < 3; y++) {
-//             for (int x = 0; x < 3; x++) {
-//                 for (int z = 0; z < 3; z++) {
-//                     board[2 - z][x][y] = temp[y][x][z];
-//                 }
-//             }
-//         }
-//     }
-// }
 void rotateBoardX(uint8_t board[3][3][3], int8_t direction) {
+
   uint8_t temp[3][3][3];
-  
-  // Copy board to temp
-  for (int y = 0; y < 3; y++) {
-    for (int x = 0; x < 3; x++) {
-      for (int z = 0; z < 3; z++) {
-        temp[y][x][z] = board[y][x][z];
-      }
-    }
-  }
-  
-  if (direction > 0) {
-    // Forward rotation: 180 degrees around X-axis
-    // Y levels flip: top (2) -> bottom (0), bottom (0) -> top (2)
-    // Z coords flip: front (2) -> back (0), back (0) -> front (2)
+
+    // Copy board to temp
     for (int y = 0; y < 3; y++) {
-      for (int x = 0; x < 3; x++) {
-        for (int z = 0; z < 3; z++) {
-          board[2 - y][x][2 - z] = temp[y][x][z];
+        for (int x = 0; x < 3; x++) {
+            for (int z = 0; z < 3; z++) {
+                temp[y][x][z] = board[y][x][z];
+            }
         }
-      }
     }
-  } else {
-    // Reverse rotation: -180 degrees around X-axis (same as +180)
-    // Result is the same as forward for 180 degree rotation
-    for (int y = 0; y < 3; y++) {
-      for (int x = 0; x < 3; x++) {
-        for (int z = 0; z < 3; z++) {
-          board[2 - y][x][2 - z] = temp[y][x][z];
+
+    if (direction > 0) {
+
+        // Forward rotation: 180 degrees around X-axis
+        // Y levels flip: top (2) -> bottom (0), bottom (0) -> top (2)
+        // Z coords flip: front (2) -> back (0), back (0) -> front (2)
+
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                for (int z = 0; z < 3; z++) {
+                    board[2 - y][x][2 - z] = temp[y][x][z];
+                }
+            }
         }
-      }
+    } 
+    else {
+
+        // Reverse rotation: -180 degrees around X-axis (same as +180)
+        // Result is the same as forward for 180 degree rotation
+
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                for (int z = 0; z < 3; z++) {
+                    board[2 - y][x][2 - z] = temp[y][x][z];
+                }
+            }
+        }
     }
-  }
+
 }
 
 // Rotate the board array 90 degrees around Y-axis (spinning left/right)

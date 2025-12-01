@@ -42,7 +42,7 @@ const Fixed COS_ISO = 0.866;    				// cos(30°)
 const Fixed SIN_ISO = 0.5;      				// sin(30°)
 Fixed gridSize = 26;
 Fixed layerSpacing = 21;
-uint8_t z = 0;
+uint8_t gameOverCounter = 0;
 
 
 /* -----------------------------------------------------------------------------------------------------------------------------
@@ -79,6 +79,10 @@ void loop() {
 
 		case GameState::Title:
 			showTitle();
+			break;
+
+		case GameState::Instructions:
+			showInstructions();
 			break;
 
 		case GameState::Game:
@@ -119,9 +123,21 @@ void showTitle() {
 				
 		// playerOrComp = random(0, 2);	
 		playerOrComp = 0;
-		gameState = GameState::Game;
+		gameState = GameState::Instructions;
 		aCount = 20;
-		z = 255;
+		gameOverCounter = Constants::GameOverCounter_NoAction;
+
+	}
+
+}
+
+void showInstructions() {
+
+	Sprites::drawOverwrite(6, 8, Images::Instructions, 0);
+
+	if (arduboy.justPressed(A_BUTTON)) {
+
+		gameState = GameState::Game;
 
 	}
 
@@ -131,12 +147,9 @@ void playGame() {
 
 	Fixed centerY = layerSpacing - Fixed(15);
 
-	// Sprites::drawOverwrite(-5, 0, Images::Side, 0);
-	// Sprites::drawOverwrite(5 + 128 - 23, 0, Images::Side2, 0);
-
 	if (xRotate) {
 
-	  	rotateGridX(xRotateDirection); // Call with 1 for forward, -1 for reverse
+	  	rotateGridX(xRotateDirection); 
 		drawGridLayer_X(Fixed(-15), gridSize, centerY);                          		// Bottom layer
 		drawGridLayer_X(centerY, gridSize, centerY);            						// Middle layer - fill bottom
 		drawGridLayer_X((layerSpacing * Fixed(2)) - Fixed(15), gridSize, centerY);      // Top layer 
@@ -145,7 +158,7 @@ void playGame() {
 	}
 	else if (yRotate) {
 
-		rotateGridY(yRotateDirection); // Call with 1 for clockwise, -1 for counter-clockwise
+		rotateGridY(yRotateDirection); 
 		drawGridLayer_Y(Fixed(-15), gridSize);
 		drawGridLayer_Y(centerY, gridSize);
 		drawGridLayer_Y((layerSpacing * Fixed(2)) - Fixed(15), gridSize);
@@ -264,7 +277,7 @@ void playGame() {
 			if (checkForWin() != Players::None) {
 			
 				gameState = GameState::GameOver;
-				z = 0;
+				gameOverCounter = 0;
 
 			}
 
@@ -276,14 +289,13 @@ void playGame() {
 
 				case Players::Noughts:
 
-					if (z < 255) {
+					if (gameOverCounter != Constants::GameOverCounter_NoAction) {
 						
 						for (uint8_t i = 0; i < 15; i++) {
 
-							uint8_t c = pgm_read_byte(&GameOver::YouWon_Y[(z * 3 * 15) + (i * 3)]);
-							uint8_t x = pgm_read_byte(&GameOver::YouWon_Y[(z * 3 * 15) + (i * 3) + 1]);
-							int8_t y = pgm_read_byte(&GameOver::YouWon_Y[(z * 3 * 15) + (i * 3) + 2]);
-
+							uint8_t c = pgm_read_byte(&GameOver::YouWon_Letters[i]);
+							uint8_t x = pgm_read_byte(&GameOver::YouWon_X[i]);
+							int8_t y = pgm_read_byte(&GameOver::YouWon_Y[(gameOverCounter * 15) + i]);
 
 							const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
 							const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
@@ -292,21 +304,21 @@ void playGame() {
 							Sprites::drawExternalMask(x, y, letterPtr, maskPtr, 0, 0);
 						}
 
-						if (arduboy.frameCount % 2 == 0 && z < 54) z++;
+						if (arduboy.frameCount % 2 == 0 && gameOverCounter < 54) gameOverCounter++;
 
-					}				
+					}			
 
 					break;
 
 				case Players::Crosses:
 
-					if (z < 255) {
+					if (gameOverCounter != Constants::GameOverCounter_NoAction) {
 						
 						for (uint8_t i = 0; i < 16; i++) {
 
-							uint8_t c = pgm_read_byte(&GameOver::YouLost_Y[(z * 3 * 16) + (i * 3)]);
-							uint8_t x = pgm_read_byte(&GameOver::YouLost_Y[(z * 3 * 16) + (i * 3) + 1]);
-							int8_t y = pgm_read_byte(&GameOver::YouLost_Y[(z * 3 * 16) + (i * 3) + 2]);
+							uint8_t c = pgm_read_byte(&GameOver::YouLost_Letters[i]);
+							uint8_t x = pgm_read_byte(&GameOver::YouLost_X[i]);
+							int8_t y = pgm_read_byte(&GameOver::YouLost_Y[(gameOverCounter * 16) + i]);
 
 							const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
 							const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
@@ -315,22 +327,21 @@ void playGame() {
 
 						}
 
-						if (arduboy.frameCount % 2 == 0 && z < 54) z++;
+						if (arduboy.frameCount % 2 == 0 && gameOverCounter < 54) gameOverCounter++;
 
 					}				
-
+	
 					break;
 
 				case Players::Draw:
 
-
-					if (z < 255) {
+					if (gameOverCounter != Constants::GameOverCounter_NoAction) {
 						
 						for (uint8_t i = 0; i < 13; i++) {
 
-							uint8_t c = pgm_read_byte(&GameOver::Draw_Y[(z * 3 * 13) + (i * 3)]);
-							uint8_t x = pgm_read_byte(&GameOver::Draw_Y[(z * 3 * 13) + (i * 3) + 1]);
-							int8_t y = pgm_read_byte(&GameOver::Draw_Y[(z * 3 * 13) + (i * 3) + 2]);
+							uint8_t c = pgm_read_byte(&GameOver::Draw_Letters[i]);
+							uint8_t x = pgm_read_byte(&GameOver::Draw_X[i]);
+							int8_t y = pgm_read_byte(&GameOver::Draw_Y[(gameOverCounter * 13) + i]);
 
 							const uint8_t* letterPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters[c]);
 							const uint8_t* maskPtr = (const uint8_t*)pgm_read_ptr(&Images::Letters_Mask[c]);
@@ -339,7 +350,7 @@ void playGame() {
 
 						}
 
-						if (arduboy.frameCount % 2 == 0 && z < 44) z++;
+						if (arduboy.frameCount % 2 == 0 && gameOverCounter < 44) gameOverCounter++;
 
 					}				
 

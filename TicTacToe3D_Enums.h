@@ -3,6 +3,7 @@
 enum class GameState : uint8_t { 
     Splash, 
     Title, 
+    Instructions,
     Game, 
     GameOver,
     GameOver_View_1,

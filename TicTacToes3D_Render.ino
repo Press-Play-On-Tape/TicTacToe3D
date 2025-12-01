@@ -138,8 +138,7 @@ void renderStatus () {
 
 void renderPieces(uint8_t xOffset, uint8_t zAxis, bool checkPieces) {
  
-	int8_t zOffset = -3;//cursor[Constants::Z_Axis];
-    // xOffset = xOffset + (checkPieces ? 4 : 0);
+	int8_t zOffset = -3;
 
 	for (uint8_t x = 0; x <= 2; x++) {
 

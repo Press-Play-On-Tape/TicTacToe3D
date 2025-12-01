@@ -15,4 +15,6 @@ namespace Constants {
     const uint8_t Cube_R_X = 0;
     const uint8_t Cube_R_Y = 18;
 
+    const uint8_t GameOverCounter_NoAction = 255;
+
 };
