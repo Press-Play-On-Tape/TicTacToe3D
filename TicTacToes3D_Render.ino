@@ -113,27 +113,14 @@ void renderBoard() {
 }
 
 
-	// Status
+void renderGameTally() {
 
-void renderStatus () {
+	Sprites::drawOverwrite(107, 32, Images::P1P2, playerOrComp + (numberOfPlayers < 2 ? 2 : 0));
 
-	uint8_t x = 0;
-	Sprites::drawOverwrite(x, 52, Images::Status, 0);
-
-	if (comp_cursor[0] != 255) {
-
-		Sprites::drawOverwrite(x + 18, 51, Images::Numbers, comp_cursor[2]);
-		Sprites::drawOverwrite(x + 22, 51, Images::Numbers, comp_cursor[1]);
-		Sprites::drawOverwrite(x + 26, 51, Images::Numbers, comp_cursor[0]);
-
-	}
-
-	Sprites::drawOverwrite(x + 18, 58, Images::Numbers, cursor[2]);
-	Sprites::drawOverwrite(x + 22, 58, Images::Numbers, cursor[1]);
-	Sprites::drawOverwrite(x + 26, 58, Images::Numbers, cursor[0]);
+	if (!flashNoughts || (arduboy.frameCount % 32) < 16)		Sprites::drawSelfMasked(119, 39, Images::Numbers_2Digit, player1Win);
+	if (!flashCrosses || (arduboy.frameCount % 32) < 16)		Sprites::drawSelfMasked(119, 45, Images::Numbers_2Digit, player2Win);
 
 }
-
 
 
 void renderPieces(uint8_t xOffset, uint8_t zAxis, bool checkPieces) {

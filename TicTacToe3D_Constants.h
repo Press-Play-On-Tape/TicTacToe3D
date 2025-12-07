@@ -1,5 +1,9 @@
 #pragma once
 
+#include <FixedPoints.h>
+#include <FixedPointsCommon.h>
+using Fixed = SQ15x16;
+
 namespace Constants {
 
     const uint8_t Z_Axis = 0;
@@ -16,5 +20,9 @@ namespace Constants {
     const uint8_t Cube_R_Y = 18;
 
     const uint8_t GameOverCounter_NoAction = 255;
+
+    const Fixed Rotation_Speed = 0.08; 				// radians per frame
+    const Fixed COS_ISO = 0.866;    				// cos(30°)
+    const Fixed SIN_ISO = 0.5;      				// sin(30°)
 
 };

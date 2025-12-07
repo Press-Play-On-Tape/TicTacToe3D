@@ -1,5 +1,31 @@
 #include <Arduboy2.h>
 
+void startGame() {
+
+	resetBoard();
+
+	// board[0][0][0] = 1;
+	// board[0][0][1] = 2;
+	// board[0][0][2] = 1;
+
+	// board[1][1][0] = 1;
+	// board[1][1][1] = 2;
+	// board[2][0][1] = 1;
+
+	// board[2][2][0] = 2;
+	// board[2][2][1] = 2;
+			
+	playerOrComp = 0;
+	gameState = GameState::NumberoFPlayers;
+	gameOverCounter = Constants::GameOverCounter_NoAction;
+	playAgainCursor = 0;
+    middlePositionCount = 0;
+
+	flashCrosses = false;
+	flashNoughts = false;
+
+}
+
 void rotateBoardX(uint8_t board[3][3][3], int8_t direction) {
 
   uint8_t temp[3][3][3];
@@ -59,27 +85,41 @@ void rotateBoardY(uint8_t board[3][3][3], int8_t direction) {
     }
     
     if (direction > 0) {
+
         // Clockwise rotation: 90 degrees around Y-axis
         // Rotating around Y-axis: X and Z coordinates transform
-        // new_x = z, new_z = 2-x
+
         for (int y = 0; y < 3; y++) {
+
             for (int x = 0; x < 3; x++) {
+
                 for (int z = 0; z < 3; z++) {
                     board[y][z][2 - x] = temp[y][x][z];
                 }
+
             }
+
         }
-    } else {
+
+    } 
+    else {
+
         // Counter-clockwise rotation: -90 degrees around Y-axis
-        // new_x = 2-z, new_z = x
+
         for (int y = 0; y < 3; y++) {
+
             for (int x = 0; x < 3; x++) {
+
                 for (int z = 0; z < 3; z++) {
                     board[y][2 - z][x] = temp[y][x][z];
                 }
+
             }
+
         }
+
     }
+
 }
 
 
@@ -119,19 +159,19 @@ void rotateY(Fixed &x, Fixed &z, Fixed angle) {
 // direction: 1 for forward, -1 for reverse
 void rotateGridX(int8_t direction) {
 
-    rotationAngle += ROTATION_SPEED * direction;
+    rotationAngle += Constants::Rotation_Speed * direction;
 
     if (direction > 0 && rotationAngle >= Fixed(PI)) {
+
         rotateBoardX(board, -direction);
-        // rotateBoardY(board, -direction);
-        // rotateBoardY(board, -direction);
         xRotate = false;
+
     } 
     else if (direction < 0 && rotationAngle <= Fixed(-PI)) {
+
         rotateBoardX(board, -direction);
-        // rotateBoardY(board, -direction);
-        // rotateBoardY(board, -direction);
         xRotate = false;
+
     }
 
 }
@@ -140,7 +180,7 @@ void rotateGridX(int8_t direction) {
 // direction: 1 for clockwise, -1 for counter-clockwise
 void rotateGridY(int8_t direction) {
 
-    rotationAngle += ROTATION_SPEED * direction;
+    rotationAngle += Constants::Rotation_Speed * direction;
 
     if (direction > 0 && rotationAngle >= Fixed(PI/2)) {
         rotateBoardY(board, -direction);
@@ -156,8 +196,8 @@ void rotateGridY(int8_t direction) {
 // 3D to 2D isometric projection
 void isoProject(Fixed x, Fixed y, Fixed z, int16_t &screenX, int16_t &screenY) {
     // Isometric projection formula
-    screenX = 64 + int16_t((x - z) * COS_ISO);
-    screenY = 38 + int16_t((x + z) * SIN_ISO - y);
+    screenX = 64 + int16_t((x - z) * Constants::COS_ISO);
+    screenY = 38 + int16_t((x + z) * Constants::SIN_ISO - y);
 }
 
 void resetBoard() {
@@ -179,7 +219,6 @@ void resetBoard() {
 	cursor[0] = 0;
 	cursor[1] = 0;
 	cursor[2] = 0;
-    comp_cursor[0] = 255;
 
 }
 
@@ -552,9 +591,7 @@ void swapToPlayerMove(uint8_t x, uint8_t y, uint8_t z) {
 	cursor[Constants::Y_Axis] = y;
 	cursor[Constants::Z_Axis] = z;
 
-	comp_cursor[Constants::X_Axis] = x;
-	comp_cursor[Constants::Y_Axis] = y;
-	comp_cursor[Constants::Z_Axis] = z;
+    board[z][y][x] = Players::Crosses;
 
 	playerOrComp = 0;
 
@@ -627,10 +664,9 @@ void computerMove() {
 
     // Strategy 3: Take center if available ..
 
-    if (board[1][1][1] == Players::None) {
+    if (board[1][1][1] == Players::None && middlePositionCount >= 4) {
 
 		swapToPlayerMove(1, 1, 1);
-        board[1][1][1] = Players::Crosses;
         return;
 
     }
@@ -643,7 +679,9 @@ void computerMove() {
         {2,0,0}, {2,0,2}, {2,2,0}, {2,2,2}
     };
     
-    for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t j = 0; j < 12; j++) {
+
+        uint8_t i = random(8);
 
         uint8_t z = corners[i][0];
         uint8_t y = corners[i][1];
@@ -652,7 +690,6 @@ void computerMove() {
         if (board[z][y][x] == Players::None) {
 
 			swapToPlayerMove(x, y, z);
-            board[z][y][x] = Players::Crosses;
             return;
         }
 
@@ -661,17 +698,81 @@ void computerMove() {
 
     // Strategy 5: Take any available space ..
 
-    for (uint8_t z = 0; z < 3; z++) {
+    uint8_t r = random(6);
 
-        for (uint8_t y = 0; y < 3; y++) {
+    for (uint8_t a = 0; a < 3; a++) {
 
-            for (uint8_t x = 0; x < 3; x++) {
+        for (uint8_t b = 0; b < 3; b++) {
 
-                if (board[z][y][x] == Players::None) {
+            for (uint8_t c = 0; c < 3; c++) {
 
-					swapToPlayerMove(x, y, z);
-                    board[z][y][x] = Players::Crosses;
-                    return;
+                switch (r) {
+
+                    case 0:
+
+                        if (board[a][b][c] == Players::None) {
+
+                            swapToPlayerMove(a, b, c);
+                            return;
+
+                        }
+
+                        break;
+
+                    case 1:
+
+                        if (board[a][c][b] == Players::None) {
+
+                            swapToPlayerMove(a, c, b);
+                            return;
+
+                        }
+
+                        break;
+
+                    case 2:
+
+                        if (board[b][a][c] == Players::None) {
+
+                            swapToPlayerMove(b, a, c);
+                            return;
+
+                        }
+
+                        break;
+
+                    case 3:
+
+                        if (board[b][c][a] == Players::None) {
+
+                            swapToPlayerMove(b, c, a);
+                            return;
+
+                        }
+
+                        break;
+
+                    case 4:
+
+                        if (board[c][a][b] == Players::None) {
+
+                            swapToPlayerMove(c, a, b);
+                            return;
+
+                        }
+
+                        break;
+
+                    case 5:
+
+                        if (board[c][b][a] == Players::None) {
+
+                            swapToPlayerMove(c, b, a);
+                            return;
+
+                        }
+
+                        break;
 
                 }
 
