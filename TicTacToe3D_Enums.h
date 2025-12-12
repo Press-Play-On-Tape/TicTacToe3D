@@ -5,6 +5,7 @@ enum class GameState : uint8_t {
     Title, 
     NumberoFPlayers, 
     Instructions,
+    Instructions2,
     Game, 
     Game_MiddleWarning,
     GameOver,

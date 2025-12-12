@@ -90,6 +90,10 @@ void loop() {
 			showInstructions();
 			break;
 
+		case GameState::Instructions2:
+			showInstructions2();
+			break;
+
 		case GameState::Game:
 		case GameState::GameOver:
 			playGame();
@@ -182,7 +186,20 @@ void playAgain() {
 
 void showInstructions() {
 
-	Sprites::drawOverwrite(6, 8, Images::Instructions, 0);
+	Sprites::drawOverwrite(0, 0, Images::Instructions, 0);
+
+	if (arduboy.justPressed(A_BUTTON)) {
+
+		startGame();
+		gameState = GameState::Instructions2;
+
+	}
+
+}
+
+void showInstructions2() {
+
+	Sprites::drawOverwrite(0, 0, Images::Instructions2, 0);
 
 	if (arduboy.justPressed(A_BUTTON)) {
 
